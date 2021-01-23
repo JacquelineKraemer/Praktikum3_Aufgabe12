@@ -1,0 +1,208 @@
+// PAD1 - Praktikum 3
+// Aufgabe 12
+// 762199
+
+#include <iostream>
+using namespace std;
+
+
+const int Reihen = 10;
+const int Spalten = 10;
+bool gameOver = false;
+char Spielfeld[Reihen][Spalten];                        //Unbefülltes 2D char Array, welches päter komplett mit '*' befüllt wird
+char Mine[Reihen][Spalten];                             //Unbefülltes 2D char Array, welches später mit 10 Minen befüllt wird
+int counter = 0;
+
+int Aufdecken(int Zahlen, int BuchstabeZahlUmwandlung)          //Anzahl der angrenzenden Minen wird angezeigt
+{
+    int Umfeld = 0;                                             //Die Zahl die "Umfeld" annehmen wird, wird dann später auf dem Spielfeld erscheinen (" ","1","2","3", usw.)
+
+    if (Mine[Zahlen + 1][BuchstabeZahlUmwandlung] == 'M')       //Bombe rechts von der Eingabe
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen - 1][BuchstabeZahlUmwandlung] == 'M')       //Bombe links von der Eingabe
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen][BuchstabeZahlUmwandlung + 1] == 'M')       //Bombe unter der Eingabe
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen][BuchstabeZahlUmwandlung - 1] == 'M')       //Bombe über der Eingabe
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen + 1][BuchstabeZahlUmwandlung + 1] == 'M')   //Bombe Süd-Ost (rechts-unten)
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen + 1][BuchstabeZahlUmwandlung - 1] == 'M')   //Bombe Süd-West (links-unten)
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen - 1][BuchstabeZahlUmwandlung + 1] == 'M')   //Bombe Nord-West (links-oben)
+    {
+        Umfeld += 1;
+    }
+
+    if (Mine[Zahlen -1][BuchstabeZahlUmwandlung - 1] == 'M')    //Bombe Nord-Ost (rechts-oben)
+    {
+        Umfeld += 1;
+    }
+                                        //Bei jeder Bombe in der Umgebung wird der Wert um 1 erhöht, bis auf ein Maximum von 8
+    switch (Umfeld)                     //Dies wird dann später in Zeile 169 verwendet
+    {
+         case 0: Umfeld = ' '; break;
+         case 1: Umfeld = '1'; break;
+         case 2: Umfeld = '2'; break;
+         case 3: Umfeld = '3'; break;
+         case 4: Umfeld = '4'; break;
+         case 5: Umfeld = '5'; break;
+         case 6: Umfeld = '6'; break;
+         case 7: Umfeld = '7'; break;
+         case 8: Umfeld = '8'; break;   //Alle 8 Felder um der Auswahl herum sind Minen
+    }
+
+    return Umfeld;
+}
+
+void Minen()            //Minen werden als 'Char', in diesem Fall 'M', definiert. Falls der Fall 'M' in Zeile 163 eintritt, ist das Spiel verloren
+{
+    Mine[3][3] = 'M';   //Eingabe [5][5] Test
+    Mine[3][4] = 'M';
+    Mine[3][5] = 'M';
+    Mine[4][3] = 'M';
+    Mine[9][9] = 'M';
+    Mine[4][5] = 'M';
+    Mine[5][3] = 'M';
+    Mine[5][4] = 'M';
+    Mine[5][5] = 'M';
+    Mine[1][1] = 'M';
+}
+
+void Spielfeld_generieren(char Spielfeld[Reihen][Spalten])      //Generiert ein Spielfeld und befüllt es mit '*'
+{
+    cout << "Spielfeld mit 10 Minen" << endl << endl;
+    for (int i = 0; i < Reihen; i++)                            //Array wird reihenweise befüllt
+    {
+        for (int j = 0; j < Spalten; j++)
+        {
+            Spielfeld[i][j] = '*';                              //Füllt jede Reihe nacheinander auf
+        }
+    }
+}
+
+void Spielplan_Ausgabe(char Spielfeld[Reihen][Spalten])
+{
+    cout << "   ";                              //A-J gerade rücken
+    for (char i(65); i < 75; i++)               //Ausgabe von A-J
+    {
+        cout << i << " ";                       //Buchstabe an Stelle von 'i' und danach ein Leerzeichen
+    }
+
+    cout << endl;
+
+    for (int i = 0; i < Reihen; i++)
+    {
+        if(i == 9)                              //Um die 10te Reihe gerade zu rücken
+        {
+            cout << i+1 << " ";
+        }
+        else                                    //Ausgabe von 1-9
+        {
+            cout << " " << i + 1 << " ";        //Damit 1-10 Reihen ausgegeben wird und nicht 0-9 Reihen
+        }
+        for (int j = 0; j < Spalten; j++)       //Nach jeder ausgegebenen Zahl werden die '*' ausgegeben
+        {
+            cout << Spielfeld[i][j] << " ";
+        }
+
+        cout << endl;
+    }
+}
+
+void Auswahl()
+{
+    int i = 0;
+    int Zahlen = 0;
+    char Buchstabe;
+    int BuchstabeZahlUmwandlung = 200;        //Der Wert ist auf 200, da bei ungültiger Eingabe vom Buchstaben sonst trotzdem ein Feld aufgedeckt werden würde
+    cout << endl;                             //Somit wird das Feld 200 aufgedeckt, welches außerhalb des Spielfeldes liegt
+
+    cin >> Zahlen;
+    cin >> Buchstabe;
+    cout << endl;
+
+    Zahlen--;                                 //Minus 1, damit es richtig angezeigt wird, da Array bei 0 beginnt
+
+    i = (int)Buchstabe;                       //Char Buchstabe wird als int behandelt
+    if (Buchstabe > 96 && Buchstabe < 123)    //Umwandlung von Klein- in Großbuchstaben
+    {
+        i -= 32;
+        Buchstabe = char(i);
+    }
+
+    switch(Buchstabe)                                        //Buchstabe wird in eine Zahl umgewandelt, damit das System damit arbeiten kann, User gibt zwar Buchstaben ein,
+    {                                                        //jedoch müssen wir mit Zahlen arbeiten. 'Char Buchstabe' wird nicht in den darauf folgenden Schleifen benutzt.
+         case 'A': BuchstabeZahlUmwandlung = 0; break;       //Stattdessen benutzten wir 'int BuchstabeZahlUmwandlung', welche die Zahl, die gleich dem Buchstaben in der Switch Anweisung ist, annimmt
+         case 'B': BuchstabeZahlUmwandlung = 1; break;
+         case 'C': BuchstabeZahlUmwandlung = 2; break;
+         case 'D': BuchstabeZahlUmwandlung = 3; break;
+         case 'E': BuchstabeZahlUmwandlung = 4; break;
+         case 'F': BuchstabeZahlUmwandlung = 5; break;
+         case 'G': BuchstabeZahlUmwandlung = 6; break;
+         case 'H': BuchstabeZahlUmwandlung = 7; break;
+         case 'I': BuchstabeZahlUmwandlung = 8; break;
+         case 'J': BuchstabeZahlUmwandlung = 9; break;
+            default: cout << "Ungültige Eingabe!" << endl << endl;  //Bei jedem anderen Buchstaben kommt eine Fehlermeldung
+    }
+
+    if (Mine[Zahlen][BuchstabeZahlUmwandlung] == 'M')              //Falls man auf eine Mine stößt -> GameOver
+    {
+        gameOver = true;
+    }
+
+    else                                        //Falls nicht, geht es weiter mit der Aufdeck-Funktion aus Zeile 12
+    {
+        Spielfeld[Zahlen][BuchstabeZahlUmwandlung] = Aufdecken(Zahlen, BuchstabeZahlUmwandlung);    //Das was der User eingegeben hat wird dann als (" ","1","2", usw.(je nachdem wie viele Bomben in der Umgebung sind)angezeigt)
+    }
+
+
+    counter++;
+}
+
+int main()
+{
+    cout << "***Minesweeper***" << endl << endl << "Spielregeln: " << endl << "Tragen Sie eine Zahl für die Reihe und dann einen Buchstaben für die Spalte ein." << endl <<
+            "Bestätigen Sie jede Eingabe mit der Enter Taste." << endl << "Viel Spaß! :)" << endl << endl;
+
+
+    Spielfeld_generieren(Spielfeld);            //Als erstes das Spielfeld generieren
+    Minen();                                    //Minen bestimmen
+
+    while (gameOver == false && counter <91)    //GameLoop
+    {
+        cout << endl;
+        Spielplan_Ausgabe(Spielfeld);           //Spielfeld wird ausgegeben
+        Auswahl();                              //Auswahl wird getätigt
+
+        if (gameOver == true)
+        {
+            cout << "YOU LOSE! :(" << endl << "Sie haben eine Mine aufgedeckt, das Spiel ist beendet." << endl << endl;
+        }
+
+        if (counter > 89)
+        {
+            cout << "Glückwunsch, Sie haben gewonnen! :)" << endl << endl;
+        }
+    }
+
+    return 0;
+}
